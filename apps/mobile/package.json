@@ -1,0 +1,12 @@
+{
+  "name": "@ghostdrop/mobile",
+  "version": "2.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "@ghostdrop/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

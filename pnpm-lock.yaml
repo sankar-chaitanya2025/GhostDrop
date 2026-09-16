@@ -18,6 +18,16 @@ importers:
         specifier: ^3.0.7
         version: 3.2.7(@types/node@22.20.2)
 
+  apps/mobile:
+    dependencies:
+      '@ghostdrop/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+    devDependencies:
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
+
   packages/shared:
     devDependencies:
       typescript:
