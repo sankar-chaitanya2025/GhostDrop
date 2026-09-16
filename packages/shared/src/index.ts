@@ -8,6 +8,7 @@ export * from './unlock.js';
 export * from './open.js';
 export * from './capability.js';
 export * from './purge.js';
+export * from './notification.js';
 
 export type UUID = string;
 

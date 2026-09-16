@@ -11,7 +11,7 @@
 - [x] T09: Atomic Ghost Open, Row Lock Hierarchy & ViewSession
 - [x] T10: Single-Use MediaCapability Streaming & Reconnection
 - [x] T11: Ephemeral Purge Saga & Multi-Recipient Invariant
-- [ ] T12: Deduplicated Notification Outbox Worker
+- [x] T12: Deduplicated Notification Outbox Worker
 - [ ] T13: React Native / Expo Shell & Dark Radar Map
 - [ ] T14: Client GPS Proximity & Signed Verification Loop
 - [ ] T15: High-Stakes Screen-Shield Ephemeral Viewer
