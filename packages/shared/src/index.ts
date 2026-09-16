@@ -1,6 +1,7 @@
 export * from './crypto.js';
 export * from './challenge.js';
 export * from './spatial.js';
+export * from './media.js';
 
 export type UUID = string;
 
