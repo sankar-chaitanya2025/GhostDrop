@@ -13,6 +13,6 @@
 - [x] T11: Ephemeral Purge Saga & Multi-Recipient Invariant
 - [x] T12: Deduplicated Notification Outbox Worker
 - [x] T13: React Native / Expo Shell & Dark Radar Map
-- [ ] T14: Client GPS Proximity & Signed Verification Loop
+- [x] T14: Client GPS Proximity & Signed Verification Loop
 - [ ] T15: High-Stakes Screen-Shield Ephemeral Viewer
 - [ ] T16: Full Adversarial Integration Certification Suite
