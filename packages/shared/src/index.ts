@@ -1,4 +1,5 @@
 export * from './crypto.js';
+export * from './challenge.js';
 
 export type UUID = string;
 
