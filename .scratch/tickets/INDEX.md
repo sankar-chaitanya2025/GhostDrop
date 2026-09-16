@@ -8,7 +8,7 @@
 - [x] T06: Ghost Dispatch & Mutual-Friend Authorization
 - [x] T07: Active Ghost Query & Keyset Obfuscation
 - [x] T08: Short-Lived UnlockAuthorization Issuance (60s TTL)
-- [ ] T09: Atomic Ghost Open, Row Lock Hierarchy & ViewSession
+- [x] T09: Atomic Ghost Open, Row Lock Hierarchy & ViewSession
 - [ ] T10: Single-Use MediaCapability Streaming & Reconnection
 - [ ] T11: Ephemeral Purge Saga & Multi-Recipient Invariant
 - [ ] T12: Deduplicated Notification Outbox Worker

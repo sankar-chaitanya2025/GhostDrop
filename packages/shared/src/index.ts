@@ -5,6 +5,7 @@ export * from './media.js';
 export * from './dispatch.js';
 export * from './obfuscation.js';
 export * from './unlock.js';
+export * from './open.js';
 
 export type UUID = string;
 
