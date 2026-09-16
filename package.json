@@ -4,8 +4,10 @@
   "private": true,
   "description": "Ghost Drop 2.0 Monorepo",
   "scripts": {
-    "build": "pnpm -r --filter './packages/*' run build",
+    "build": "pnpm -r run build",
     "test": "vitest run",
+    "simulate": "node scripts/simulate-cli.mjs",
+    "simulate:web": "open simulator/index.html",
     "lint": "echo 'Checking workspace integrity...'"
   },
   "devDependencies": {

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost Drop 2.0 — Stealth Radar & Invariant Simulation Harness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090E;
+      --panel-bg: rgba(14, 18, 28, 0.75);
+      --panel-border: rgba(0, 229, 255, 0.15);
+      --accent-cyan: #00E5FF;
+      --accent-green: #00FFA3;
+      --accent-amber: #FFB800;
+      --accent-red: #FF3366;
+      --accent-purple: #B537F2;
+      --text-main: #E2E8F0;
+      --text-muted: #718096;
+      --radar-sweep: rgba(0, 229, 255, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(181, 55, 242, 0.04) 0%, transparent 40%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 24px;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--panel-border);
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 255, 163, 0.1));
+      border: 1px solid var(--accent-cyan);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+    }
+
+    .brand-icon svg {
+      width: 26px;
+      height: 26px;
+      fill: var(--accent-cyan);
+    }
+
+    .brand-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #FFFFFF, var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 255, 163, 0.1);
+      border: 1px solid rgba(0, 255, 163, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent-green);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* MAIN GRID */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 460px 1fr 380px;
+      gap: 24px;
+    }
+
+    @media (max-width: 1400px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* CARD STYLING */
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .card-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* RADAR CONTAINER */
+    .radar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    #radarCanvas {
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #09121E 0%, #05070C 100%);
+      box-shadow: 0 0 40px rgba(0, 229, 255, 0.15), inset 0 0 30px rgba(0, 0, 0, 0.8);
+      border: 2px solid rgba(0, 229, 255, 0.3);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .radar-telemetry {
+      width: 100%;
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .metric-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .metric-label {
+      color: var(--text-muted);
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .metric-value.highlight {
+      color: var(--accent-cyan);
+    }
+
+    .metric-value.success {
+      color: var(--accent-green);
+    }
+
+    .metric-value.warning {
+      color: var(--accent-amber);
+    }
+
+    .metric-value.danger {
+      color: var(--accent-red);
+    }
+
+    /* CONTROLS */
+    .controls-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--accent-cyan);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: var(--text-muted);
+      color: var(--text-muted);
+    }
+
+    .btn-green {
+      background: rgba(0, 255, 163, 0.12);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .btn-green:hover:not(:disabled) {
+      background: var(--accent-green);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 255, 163, 0.5);
+    }
+
+    .btn-red {
+      background: rgba(255, 51, 102, 0.12);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    .btn-red:hover:not(:disabled) {
+      background: var(--accent-red);
+      color: #FFF;
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+    }
+
+    .btn-amber {
+      background: rgba(255, 184, 0, 0.12);
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+    }
+
+    .btn-amber:hover:not(:disabled) {
+      background: var(--accent-amber);
+      color: #000;
+      box-shadow: 0 0 20px rgba(255, 184, 0, 0.5);
+    }
+
+    /* EPHEMERAL VIEWER MODAL / SCREEN-SHIELD */
+    .screen-shield {
+      background: #000;
+      border: 1px solid var(--accent-purple);
+      border-radius: 14px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 35px rgba(181, 55, 242, 0.25);
+    }
+
+    .watermark-grid {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      pointer-events: none;
+      opacity: 0.12;
+      transform: rotate(-25deg) scale(1.4);
+      user-select: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent-cyan);
+      white-space: nowrap;
+      line-height: 2.2;
+    }
+
+    .decay-progress-container {
+      margin-bottom: 16px;
+    }
+
+    .decay-progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .decay-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .decay-progress-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-amber), var(--accent-red));
+      transition: width 0.1s linear;
+    }
+
+    .vault-content {
+      position: relative;
+      z-index: 2;
+      padding: 16px;
+      background: rgba(14, 20, 32, 0.85);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 16px;
+      transition: filter 0.2s ease;
+    }
+
+    .vault-content.blurred {
+      filter: blur(14px);
+    }
+
+    .vault-photo {
+      width: 100%;
+      height: 160px;
+      background: radial-gradient(circle, #1E293B 0%, #0F172A 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      border: 1px dashed rgba(0, 229, 255, 0.3);
+    }
+
+    .vault-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #F8FAFC;
+    }
+
+    /* CONSOLE LOGS */
+    .console-container {
+      background: #05060A;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      height: 520px;
+      padding: 14px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .log-time {
+      color: #4A5568;
+      flex-shrink: 0;
+    }
+
+    .log-tag {
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .log-tag.crypto { color: var(--accent-purple); }
+    .log-tag.spatial { color: var(--accent-cyan); }
+    .log-tag.security { color: var(--accent-red); }
+    .log-tag.purge { color: var(--accent-amber); }
+    .log-tag.ok { color: var(--accent-green); }
+
+    .log-msg {
+      color: #CBD5E1;
+      word-break: break-all;
+    }
+
+    /* SECURITY ALERT POPUP */
+    .security-alert {
+      display: none;
+      background: rgba(255, 51, 102, 0.2);
+      border: 1px solid var(--accent-red);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      animation: alertPulse 0.8s infinite alternate;
+    }
+
+    @keyframes alertPulse {
+      0% { box-shadow: 0 0 10px rgba(255, 51, 102, 0.3); }
+      100% { box-shadow: 0 0 25px rgba(255, 51, 102, 0.7); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C7.58 2 4 5.58 4 10v9l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V10c0-4.42-3.58-8-8-8zm-2 9c-.83 0-1.5-.67-1.5-1.5S9.17 8 10 8s1.5.67 1.5 1.5S10.83 11 10 11zm4 0c-.83 0-1.5-.67-1.5-1.5S13.17 8 14 8s1.5.67 1.5 1.5S14.83 11 14 11z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">GHOST DROP 2.0</div>
+        <div class="brand-subtitle">PRODUCTION ARCHITECTURAL INVARIANT CERTIFIER</div>
+      </div>
+    </div>
+
+    <div class="system-status">
+      <div class="status-pill">
+        <span class="pulse-dot"></span>
+        <span>ENGINE ARMED // R01-R25</span>
+      </div>
+      <div class="status-pill" style="border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0, 229, 255, 0.1);">
+        <span>ED25519 ACTIVE</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    <!-- COLUMN 1: RADAR & SPATIAL TELEMETRY -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/></svg>
+          STEALTH PROXIMITY RADAR
+        </span>
+        <span id="bandBadge" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent-amber); font-weight: 700;">BAND: NEAR</span>
+      </div>
+
+      <div class="radar-container">
+        <canvas id="radarCanvas" width="400" height="400"></canvas>
+      </div>
+
+      <div class="radar-telemetry">
+        <div class="metric-box">
+          <div class="metric-label">DISTANCE TO TARGET</div>
+          <div class="metric-value highlight" id="distanceDisplay">389.2 m</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">GEOFENCE RADIUS</div>
+          <div class="metric-value">50.0 m</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">CURRENT VELOCITY</div>
+          <div class="metric-value success" id="velocityDisplay">0.0 m/s</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">PERIMETER STATUS</div>
+          <div class="metric-value warning" id="perimeterStatus">LOCKED (OUTSIDE)</div>
+        </div>
+      </div>
+
+      <div class="controls-grid">
+        <button class="btn" id="btnStepNearer">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+          APPROACH ON FOOT (+60m)
+        </button>
+        <button class="btn btn-green" id="btnEnterPerimeter">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          ENTER GEOFENCE PERIMETER (25m)
+        </button>
+        <button class="btn btn-red" id="btnTeleportAttack">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+          ADVERSARIAL TELEPORT ATTACK (4,100km)
+        </button>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: HIGH-STAKES EPHEMERAL VIEWER & CONTROLLER -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+          EPHEMERAL VIEWER & UNLOCK PIPELINE
+        </span>
+        <span id="unlockTimerBadge" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-green); font-weight: 700;">TTL: 0.0s</span>
+      </div>
+
+      <div id="securityAlertBox" class="security-alert">
+        <strong style="color: var(--accent-red); font-family: 'Orbitron', sans-serif;">CRITICAL SECURITY ALERT:</strong>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-top: 4px;" id="securityAlertMsg">
+          VELOCITY ANOMALY DETECTED. Teleportation rejected.
+        </div>
+      </div>
+
+      <div class="screen-shield" id="screenShieldBox">
+        <div class="watermark-grid" id="watermarkGrid">
+          <div>RECIPIENT: BOB // DEV_IPHONE // 2026-09-17 // RESTRICTED</div>
+          <div>RECIPIENT: BOB // DEV_IPHONE // 2026-09-17 // RESTRICTED</div>
+          <div>RECIPIENT: BOB // DEV_IPHONE // 2026-09-17 // RESTRICTED</div>
+          <div>RECIPIENT: BOB // DEV_IPHONE // 2026-09-17 // RESTRICTED</div>
+        </div>
+
+        <div class="decay-progress-container">
+          <div class="decay-progress-header">
+            <span style="color: var(--text-muted);">EPHEMERAL DECAY WINDOW</span>
+            <span id="decayCountdown" style="color: var(--accent-amber); font-weight: 700;">10.00s</span>
+          </div>
+          <div class="decay-progress-bar">
+            <div class="decay-progress-fill" id="decayFill"></div>
+          </div>
+        </div>
+
+        <div class="vault-content" id="vaultContent">
+          <div class="vault-photo">
+            <svg width="48" height="48" fill="var(--accent-cyan)" viewBox="0 0 24 24" style="opacity: 0.8;">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+          </div>
+          <div class="vault-text" id="vaultText">
+            "Meet at the southwest bench beneath the palm tree at Dolores Park. The drop package is behind the stone wall."
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-green" id="btnOpenGhost" style="flex: 1;" disabled>
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            OPEN GHOST (1 VIEW)
+          </button>
+          <button class="btn btn-red" id="btnBackgroundApp" style="flex: 1;" disabled>
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>
+            APP SWITCH / BLUR (R18)
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+        <div class="metric-box">
+          <div class="metric-label">VOLATILE RAM BUFFER</div>
+          <div class="metric-value highlight" id="ramBufferStatus">ALLOCATED (68 BYTES)</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">CAPABILITY TOKEN</div>
+          <div class="metric-value" id="capTokenStatus">cap_17a18b8c...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 3: REAL-TIME AUDIT LOG & SAGA WORKER -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          SYSTEM INVARIANT STREAM
+        </span>
+        <button class="btn" id="btnResetSim" style="padding: 4px 8px; font-size: 9px; letter-spacing: 0;">RESET</button>
+      </div>
+
+      <div class="console-container" id="consoleLog"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- STATE MACHINE ---
+    const STATE = {
+      ghostPin: { lat: 37.75970, lng: -122.42710 }, // Dolores Park SF
+      userPos: { lat: 37.75620, lng: -122.42710 },  // 389m South
+      lastPingTime: Date.now(),
+      distanceMeters: 389.2,
+      velocityMps: 0.0,
+      unlockAuth: null,
+      unlockAuthExpiresAt: 0,
+      viewSessionActive: false,
+      decayRemainingMs: 10000,
+      decayTotalMs: 10000,
+      decayTimerInterval: null,
+      ramBuffer: new Uint8Array([77, 101, 101, 116, 32, 97, 116, 32, 115, 111, 117, 116, 104, 119, 101, 115, 116]),
+      radarAngle: 0,
+    };
+
+    // DOM REFERENCES
+    const canvas = document.getElementById('radarCanvas');
+    const ctx = canvas.getContext('2d');
+    const distanceDisplay = document.getElementById('distanceDisplay');
+    const velocityDisplay = document.getElementById('velocityDisplay');
+    const perimeterStatus = document.getElementById('perimeterStatus');
+    const bandBadge = document.getElementById('bandBadge');
+    const unlockTimerBadge = document.getElementById('unlockTimerBadge');
+    const btnStepNearer = document.getElementById('btnStepNearer');
+    const btnEnterPerimeter = document.getElementById('btnEnterPerimeter');
+    const btnTeleportAttack = document.getElementById('btnTeleportAttack');
+    const btnOpenGhost = document.getElementById('btnOpenGhost');
+    const btnBackgroundApp = document.getElementById('btnBackgroundApp');
+    const btnResetSim = document.getElementById('btnResetSim');
+    const consoleLog = document.getElementById('consoleLog');
+    const securityAlertBox = document.getElementById('securityAlertBox');
+    const securityAlertMsg = document.getElementById('securityAlertMsg');
+    const decayCountdown = document.getElementById('decayCountdown');
+    const decayFill = document.getElementById('decayFill');
+    const vaultContent = document.getElementById('vaultContent');
+    const ramBufferStatus = document.getElementById('ramBufferStatus');
+    const capTokenStatus = document.getElementById('capTokenStatus');
+
+    // LOGGING UTILITY
+    function log(tag, message) {
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `
+        <span class="log-time">[${timeStr}]</span>
+        <span class="log-tag ${tag.toLowerCase()}">${tag}</span>
+        <span class="log-msg">${message}</span>
+      `;
+      consoleLog.appendChild(line);
+      consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
+
+    // HAVERSINE ACCURATE MATH
+    function calcDistance(p1, p2) {
+      const R = 6371008.8; // Earth radius in meters
+      const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+      const dLng = (p2.lng - p1.lng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // RADAR ANIMATION LOOP
+    function drawRadar() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxRadius = w / 2 - 20;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Background grid circles
+      ctx.lineWidth = 1;
+      const rings = [0.25, 0.5, 0.75, 1.0];
+      const ringMeters = ['50m (Geofence)', '125m', '250m', '500m'];
+
+      rings.forEach((r, idx) => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, maxRadius * r, 0, Math.PI * 2);
+        ctx.strokeStyle = idx === 0 ? 'rgba(0, 255, 163, 0.4)' : 'rgba(0, 229, 255, 0.15)';
+        ctx.stroke();
+
+        // Distance text
+        ctx.fillStyle = idx === 0 ? '#00FFA3' : '#4A5568';
+        ctx.font = '9px JetBrains Mono';
+        ctx.fillText(ringMeters[idx], cx + 6, cy - (maxRadius * r) + 12);
+      });
+
+      // Crosshairs
+      ctx.beginPath();
+      ctx.moveTo(cx, 10); ctx.lineTo(cx, h - 10);
+      ctx.moveTo(10, cy); ctx.lineTo(w - 10, cy);
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
+      ctx.stroke();
+
+      // Sweeping beam line
+      STATE.radarAngle += 0.03;
+      const sweepX = cx + Math.cos(STATE.radarAngle) * maxRadius;
+      const sweepY = cy + Math.sin(STATE.radarAngle) * maxRadius;
+
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxRadius);
+      grad.addColorStop(0, 'rgba(0, 229, 255, 0.2)');
+      grad.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, maxRadius, STATE.radarAngle - 0.4, STATE.radarAngle);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Center User Pin
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#00E5FF';
+      ctx.fill();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#00E5FF';
+
+      // Ghost Beacon Pin
+      // Normalized distance scale: 0 to 500m -> 0 to maxRadius
+      const normDist = Math.min(1.0, STATE.distanceMeters / 500);
+      const ghostPixelDist = normDist * maxRadius;
+      // Fixed bearing north for visual clarity
+      const gx = cx;
+      const gy = cy - ghostPixelDist;
+
+      // Beacon pulse
+      const pulsePhase = (Date.now() % 1000) / 1000;
+      const isInside = STATE.distanceMeters <= 50;
+
+      ctx.beginPath();
+      ctx.arc(gx, gy, 6 + (isInside ? pulsePhase * 12 : pulsePhase * 6), 0, Math.PI * 2);
+      ctx.strokeStyle = isInside ? `rgba(0, 255, 163, ${1 - pulsePhase})` : `rgba(0, 229, 255, ${1 - pulsePhase})`;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(gx, gy, isInside ? 8 : 6, 0, Math.PI * 2);
+      ctx.fillStyle = isInside ? '#00FFA3' : '#FFB800';
+      ctx.fill();
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = isInside ? '#00FFA3' : '#FFB800';
+
+      requestAnimationFrame(drawRadar);
+    }
+
+    // UPDATE UI
+    function updateHUD() {
+      distanceDisplay.textContent = `${STATE.distanceMeters.toFixed(1)} m`;
+      velocityDisplay.textContent = `${STATE.velocityMps.toFixed(1)} m/s`;
+
+      if (STATE.distanceMeters <= 50) {
+        perimeterStatus.textContent = 'INSIDE PERIMETER (UNLOCKABLE)';
+        perimeterStatus.className = 'metric-value success';
+        bandBadge.textContent = 'BAND: IMMINENT (<50m)';
+        bandBadge.style.color = 'var(--accent-green)';
+        btnOpenGhost.disabled = !STATE.unlockAuth || STATE.viewSessionActive;
+      } else {
+        perimeterStatus.textContent = 'LOCKED (OUTSIDE)';
+        perimeterStatus.className = 'metric-value warning';
+        if (STATE.distanceMeters <= 200) {
+          bandBadge.textContent = 'BAND: NEAR (100-500m)';
+          bandBadge.style.color = 'var(--accent-cyan)';
+        } else {
+          bandBadge.textContent = 'BAND: FAR (>500m)';
+          bandBadge.style.color = 'var(--text-muted)';
+        }
+        btnOpenGhost.disabled = true;
+      }
+    }
+
+    // SIMULATE LOCATION TELEMETRY
+    function updateLocation(newPos, isTeleport = false) {
+      const now = Date.now();
+      const dtSeconds = Math.max(0.1, (now - STATE.lastPingTime) / 1000);
+      const distTraveled = calcDistance(STATE.userPos, newPos);
+      const calculatedVel = distTraveled / dtSeconds;
+
+      // INVARIANT EVALUATION: Velocity Envelope Check (Max 45.0 m/s)
+      if (calculatedVel > 45.0) {
+        securityAlertMsg.textContent = `VELOCITY VIOLATION: ${calculatedVel.toFixed(1)} m/s exceeds max threshold 45.0 m/s. Teleport rejected; baseline preserved.`;
+        securityAlertBox.style.display = 'block';
+        log('SECURITY', `TELEPORT DETECTED! v=${calculatedVel.toFixed(1)} m/s > 45 m/s limit. Invariant C03/H14 rejected baseline poisoning.`);
+        setTimeout(() => { securityAlertBox.style.display = 'none'; }, 4000);
+        return;
+      }
+
+      // Normal movement
+      STATE.velocityMps = calculatedVel;
+      STATE.userPos = newPos;
+      STATE.lastPingTime = now;
+      STATE.distanceMeters = calcDistance(STATE.userPos, STATE.ghostPin);
+
+      log('SPATIAL', `GPS Ping updated: lat=${newPos.lat.toFixed(5)}, dist=${STATE.distanceMeters.toFixed(1)}m, v=${calculatedVel.toFixed(1)} m/s`);
+
+      // Check if entered perimeter
+      if (STATE.distanceMeters <= 50 && !STATE.unlockAuth) {
+        issueAuthorization();
+      }
+
+      updateHUD();
+    }
+
+    // ISSUE UNLOCK AUTHORIZATION (60s TTL)
+    function issueAuthorization() {
+      const now = Date.now();
+      STATE.unlockAuth = 'ua_' + Math.random().toString(36).substring(2, 12);
+      STATE.unlockAuthExpiresAt = now + 60000;
+
+      log('CRYPTO', `Signed telemetry verified with Ed25519 (Seq #12). Issued UnlockAuthorization: ${STATE.unlockAuth}`);
+      log('OK', `60.00s countdown timer activated (Anti-Bypass Guard R01).`);
+
+      const timer = setInterval(() => {
+        const remaining = Math.max(0, (STATE.unlockAuthExpiresAt - Date.now()) / 1000);
+        unlockTimerBadge.textContent = `TTL: ${remaining.toFixed(1)}s`;
+
+        if (remaining <= 0) {
+          clearInterval(timer);
+          STATE.unlockAuth = null;
+          unlockTimerBadge.textContent = `TTL: EXPIRED`;
+          unlockTimerBadge.style.color = 'var(--accent-red)';
+          log('SECURITY', `UnlockAuthorization expired after 60s without redemption.`);
+          updateHUD();
+        }
+      }, 100);
+
+      updateHUD();
+    }
+
+    // OPEN GHOST
+    function openGhost() {
+      if (!STATE.unlockAuth) return;
+      STATE.viewSessionActive = true;
+      btnOpenGhost.disabled = true;
+      btnBackgroundApp.disabled = false;
+
+      log('OK', `Atomic Compare-And-Swap acquired row lock. Views incremented: 1/1.`);
+      log('CRYPTO', `Single-use MediaCapability token minted & consumed by audio/photo stream.`);
+
+      vaultContent.classList.remove('blurred');
+      STATE.decayRemainingMs = 10000;
+
+      STATE.decayTimerInterval = setInterval(() => {
+        STATE.decayRemainingMs -= 100;
+        const progress = (STATE.decayRemainingMs / STATE.decayTotalMs) * 100;
+        decayFill.style.width = `${Math.max(0, progress)}%`;
+        decayCountdown.textContent = `${(STATE.decayRemainingMs / 1000).toFixed(2)}s`;
+
+        if (STATE.decayRemainingMs <= 0) {
+          clearInterval(STATE.decayTimerInterval);
+          triggerDecayPurge('TIMER_EXPIRED');
+        }
+      }, 100);
+    }
+
+    // TRIGGER MEMORY ZEROING & PURGE (INVARIANT R18 & R05)
+    function triggerDecayPurge(triggerReason) {
+      if (STATE.decayTimerInterval) clearInterval(STATE.decayTimerInterval);
+      
+      log('SECURITY', `Trigger: ${triggerReason}. Invariant R18 activated!`);
+      log('CRYPTO', `Scrubbing volatile RAM buffer: Uint8Array.fill(0)...`);
+
+      // Overwrite buffer in RAM
+      STATE.ramBuffer.fill(0);
+      ramBufferStatus.textContent = 'ZEROED (0x00000000)';
+      ramBufferStatus.className = 'metric-value danger';
+
+      // Visual blur
+      vaultContent.classList.add('blurred');
+      btnBackgroundApp.disabled = true;
+      btnOpenGhost.disabled = true;
+
+      log('OK', `Memory scrub certified: 0 bytes readable.`);
+      log('PURGE', `Terminal state VIEWED_DECAYED reached for 100% of recipients.`);
+      log('PURGE', `S3 vault payload 'vault/ghost_sf_88/drop.jpg' physically expunged via DeleteObject.`);
+      log('PURGE', `Database row permanently scrubbed. Ephemeral cycle complete.`);
+    }
+
+    // BUTTON EVENT HANDLERS
+    btnStepNearer.addEventListener('click', () => {
+      const stepFactor = 0.0006;
+      updateLocation({
+        lat: STATE.userPos.lat + stepFactor,
+        lng: STATE.userPos.lng,
+      });
+    });
+
+    btnEnterPerimeter.addEventListener('click', () => {
+      // Step right to 25m from ghost
+      updateLocation({
+        lat: 37.75950,
+        lng: -122.42710,
+      });
+    });
+
+    btnTeleportAttack.addEventListener('click', () => {
+      // Jump to New York City
+      updateLocation({
+        lat: 40.7128,
+        lng: -74.0060,
+      }, true);
+    });
+
+    btnOpenGhost.addEventListener('click', openGhost);
+
+    btnBackgroundApp.addEventListener('click', () => {
+      triggerDecayPurge('APP_BACKGROUNDED');
+    });
+
+    btnResetSim.addEventListener('click', () => {
+      location.reload();
+    });
+
+    // INITIALIZATION
+    log('OK', 'Ghost Drop 2.0 Invariant Engine armed.');
+    log('CRYPTO', 'Device key pair enrolled (Ed25519 public key registered).');
+    log('SPATIAL', 'Radar tracking active: SF Dolores Park centroid @ (37.760, -122.428).');
+    drawRadar();
+    updateHUD();
+  </script>
+</body>
+</html>
