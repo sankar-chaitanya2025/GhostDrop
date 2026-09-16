@@ -1,6 +1,6 @@
 # Ghost Drop 2.0 — Ticket Registry & Dependency Tracker
 
-- [ ] T01: Monorepo Foundation & Supabase Local Test Harness
+- [x] T01: Monorepo Foundation & Supabase Local Test Harness
 - [ ] T02: Device Enrollment & Ed25519 Request Signing
 - [ ] T03: Location Challenge & Monotonic Sequence Enforcement
 - [ ] T04: Spatial Geofence & Velocity Engine

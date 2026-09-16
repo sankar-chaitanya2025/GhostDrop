@@ -1,0 +1,15 @@
+{
+  "name": "ghostdrop-root",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Ghost Drop 2.0 Monorepo",
+  "scripts": {
+    "build": "pnpm -r --filter './packages/*' run build",
+    "test": "vitest run",
+    "lint": "echo 'Checking workspace integrity...'"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  }
+}
