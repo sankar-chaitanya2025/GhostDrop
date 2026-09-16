@@ -5,7 +5,7 @@
 - [x] T03: Location Challenge & Monotonic Sequence Enforcement
 - [x] T04: Spatial Geofence & Velocity Engine
 - [x] T05: Media Staging & Durable Storage Finalization Saga
-- [ ] T06: Ghost Dispatch & Mutual-Friend Authorization
+- [x] T06: Ghost Dispatch & Mutual-Friend Authorization
 - [ ] T07: Active Ghost Query & Keyset Obfuscation
 - [ ] T08: Short-Lived UnlockAuthorization Issuance (60s TTL)
 - [ ] T09: Atomic Ghost Open, Row Lock Hierarchy & ViewSession
