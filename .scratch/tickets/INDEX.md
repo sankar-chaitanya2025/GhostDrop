@@ -7,7 +7,7 @@
 - [x] T05: Media Staging & Durable Storage Finalization Saga
 - [x] T06: Ghost Dispatch & Mutual-Friend Authorization
 - [x] T07: Active Ghost Query & Keyset Obfuscation
-- [ ] T08: Short-Lived UnlockAuthorization Issuance (60s TTL)
+- [x] T08: Short-Lived UnlockAuthorization Issuance (60s TTL)
 - [ ] T09: Atomic Ghost Open, Row Lock Hierarchy & ViewSession
 - [ ] T10: Single-Use MediaCapability Streaming & Reconnection
 - [ ] T11: Ephemeral Purge Saga & Multi-Recipient Invariant

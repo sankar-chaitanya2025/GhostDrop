@@ -4,6 +4,7 @@ export * from './spatial.js';
 export * from './media.js';
 export * from './dispatch.js';
 export * from './obfuscation.js';
+export * from './unlock.js';
 
 export type UUID = string;
 
