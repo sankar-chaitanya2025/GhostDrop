@@ -3,7 +3,7 @@
 - [x] T01: Monorepo Foundation & Supabase Local Test Harness
 - [x] T02: Device Enrollment & Ed25519 Request Signing
 - [x] T03: Location Challenge & Monotonic Sequence Enforcement
-- [ ] T04: Spatial Geofence & Velocity Engine
+- [x] T04: Spatial Geofence & Velocity Engine
 - [ ] T05: Media Staging & Durable Storage Finalization Saga
 - [ ] T06: Ghost Dispatch & Mutual-Friend Authorization
 - [ ] T07: Active Ghost Query & Keyset Obfuscation
