@@ -1,7 +1,4 @@
-/**
- * Ghost Drop 2.0 — Canonical Domain Types
- * Derived strictly from ARCHITECTURE.md and CONTEXT.md
- */
+export * from './crypto.js';
 
 export type UUID = string;
 

@@ -9,6 +9,7 @@
     "lint": "echo 'Checking workspace integrity...'"
   },
   "devDependencies": {
+    "@types/node": "^22.20.2",
     "typescript": "^5.8.2",
     "vitest": "^3.0.7"
   }
