@@ -7,6 +7,7 @@ export * from './obfuscation.js';
 export * from './unlock.js';
 export * from './open.js';
 export * from './capability.js';
+export * from './purge.js';
 
 export type UUID = string;
 
