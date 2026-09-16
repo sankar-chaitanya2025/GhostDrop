@@ -9,7 +9,7 @@
 - [x] T07: Active Ghost Query & Keyset Obfuscation
 - [x] T08: Short-Lived UnlockAuthorization Issuance (60s TTL)
 - [x] T09: Atomic Ghost Open, Row Lock Hierarchy & ViewSession
-- [ ] T10: Single-Use MediaCapability Streaming & Reconnection
+- [x] T10: Single-Use MediaCapability Streaming & Reconnection
 - [ ] T11: Ephemeral Purge Saga & Multi-Recipient Invariant
 - [ ] T12: Deduplicated Notification Outbox Worker
 - [ ] T13: React Native / Expo Shell & Dark Radar Map
