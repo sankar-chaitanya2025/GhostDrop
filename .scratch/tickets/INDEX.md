@@ -15,4 +15,4 @@
 - [x] T13: React Native / Expo Shell & Dark Radar Map
 - [x] T14: Client GPS Proximity & Signed Verification Loop
 - [x] T15: High-Stakes Screen-Shield Ephemeral Viewer
-- [ ] T16: Full Adversarial Integration Certification Suite
+- [x] T16: Full Adversarial Integration Certification Suite
